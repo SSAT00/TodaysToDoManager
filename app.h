@@ -3,11 +3,13 @@
 
 #include "modules.h"
 #include "mainwindow.h"
+#include "dbworker.h"
 
 class app
 {
 private:
     MainWindow* mainwindow;
+    dbworker* dbw;
 
 public:
     app();

@@ -17,11 +17,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     app.cpp \
+    dbworker.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     app.h \
+    dbworker.h \
     mainwindow.h \
     modules.h
 
