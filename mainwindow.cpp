@@ -13,3 +13,19 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::setTasks(QVector<task> tasks_){
+    tasks = tasks_;
+    pastTasksOnWindow();
+}
+
+void MainWindow::pastTasksOnWindow(){
+    if (tasks.size() != 0){
+
+    }
+}
+
+void MainWindow::setTodaysOpened(bool fl){
+    if (!fl){
+        qDebug() << "Впервые открывается сегодня!" << endl;
+    }
+}

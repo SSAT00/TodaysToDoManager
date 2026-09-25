@@ -12,10 +12,16 @@ class dbworker
 private:
     QVector<task> tasks;
 
-    void read_db();
+    bool first_todays_opening;
+
+    void readTasks();
+    void readSettings();
 
 public:
     dbworker();
+
+    QVector<task> getTasks(){return tasks;};
+    bool getTodaysOpened(){return !first_todays_opening;};
 
 };
 

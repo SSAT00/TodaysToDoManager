@@ -4,13 +4,14 @@
 #include <QDebug>
 #include <QString>
 #include <QDateTime>
-#incldue <QVector>
+#include <QVector>
 
 struct task{
-    QString tatle, subtitle;
+    QString title, subtitle;
     int status;
     QDate date;
     QTime start, end;
+    int priority;
 };
 
 #endif // MODULES_H

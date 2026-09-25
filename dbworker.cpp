@@ -2,10 +2,13 @@
 
 dbworker::dbworker()
 {
-    read_db();
+    first_todays_opening = false;
+    readTasks();
+    readSettings();
 }
 
-void dbworker::read_db(){
+void dbworker::readTasks(){
+
     {
         QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
         db.setDatabaseName("tasks.db");
@@ -17,7 +20,7 @@ void dbworker::read_db(){
 
         QSqlQuery query(db);
 
-        if (query.exec("SELECT title, subtitle, status, date, start, end, priority FROM task;")){
+        if (query.exec("SELECT title, subtitle, status, date, start, end, priority FROM Task;")){
             while (query.next()) {
                 task t;
 
@@ -39,5 +42,77 @@ void dbworker::read_db(){
                 tasks.append(t);
             }
         }
+        query.clear();
     }
+    QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+
 }
+
+
+void dbworker::readSettings(){
+
+    QDate date;
+    QDate today = QDate::currentDate();
+
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+        db.setDatabaseName("tasks.db");
+
+        if (!db.open()) {
+            qDebug() << "Ошибка при открытии базы данных с задачами:" << db.lastError().text();
+            return;
+        }
+
+        QSqlQuery query(db);
+
+        if (query.exec("SELECT date_program_opened FROM Settings;")) {
+            if (query.next()) {
+                QStringList date_list = query.value(0).toString().split(".");
+                if (date_list.size() == 3) {
+                    date = QDate(date_list[2].toInt(), date_list[1].toInt(), date_list[0].toInt());
+                    if (date != today) {
+                        first_todays_opening = true;
+                    }
+                }
+            } else {
+                first_todays_opening = true;
+            }
+        }
+
+        if (first_todays_opening) {
+            db.transaction();
+
+            query.exec("DELETE FROM Settings;");
+
+            query.prepare("INSERT INTO Settings (date_program_opened) VALUES (:date);");
+            query.bindValue(":date", today.toString("dd.MM.yyyy"));
+
+            if (!query.exec()) {
+                qDebug() << "Error add todays date:" << query.lastError().text();
+                db.rollback();
+            } else {
+                db.commit();
+            }
+        }
+
+        db.close();
+    }
+    QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
