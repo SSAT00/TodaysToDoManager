@@ -26,5 +26,11 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    bool m_isDarkTheme = false;
+
+private slots:
+    void on_btn_theme_clicked(); // Слот для кнопки переключения темы
+
 };
+
 #endif // MAINWINDOW_H
