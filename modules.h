@@ -7,9 +7,13 @@
 #include <QVector>
 #include <QFrame>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QScrollBar>
+#include <QPointer>
 
 #include <QMouseEvent>
 
+#include "themehelper.h"
 
 struct task{
     QString title, subtitle;

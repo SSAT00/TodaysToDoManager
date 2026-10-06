@@ -15,22 +15,30 @@ class MainWindow : public QMainWindow
 private:
     QVector<task> tasks;
 
-    void pastTasksOnWindow();
+    void setTasksOnWindow();
 
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
     void setTasks(QVector<task>);
-    void setTodaysOpened(bool);
+    void setTheme();
+    void setBGImage();
+    void setTheme(bool isdark_){m_isDarkTheme = isdark_;}
+
+    bool m_isDarkTheme;
 
 private:
     Ui::MainWindow *ui;
-    bool m_isDarkTheme = false;
+
 
 private slots:
-    void on_btn_theme_clicked(); // Слот для кнопки переключения темы
+    void on_btn_theme_clicked();
+    void on_btn_openWindowAddTask_clicked(){emit open_window_add_task();};
 
+signals:
+    void change_theme(bool);
+    void open_window_add_task();
 };
 
 #endif // MAINWINDOW_H

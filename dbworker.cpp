@@ -1,51 +1,79 @@
 #include "dbworker.h"
 
-dbworker::dbworker()
+dbworker::dbworker(QObject *parent)
+    : QObject(parent), first_todays_opening(false)
 {
     first_todays_opening = false;
-    readTasks();
     readSettings();
+    readTasks();
 }
 
 void dbworker::readTasks(){
 
-    {
-        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-        db.setDatabaseName("tasks.db");
+    if (first_todays_opening){
 
-        if (!db.open()) {
-            qDebug() << "Ошибка при открытии базы данных с задачами: " << db.lastError().text();
-            return;
-        }
+        {
+            QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+            db.setDatabaseName("tasks.db");
 
-        QSqlQuery query(db);
-
-        if (query.exec("SELECT title, subtitle, status, date, start, end, priority FROM Task;")){
-            while (query.next()) {
-                task t;
-
-                t.title = query.value(0).toString();
-                t.subtitle = query.value(1).toString();
-                t.status = query.value(2).toInt();
-
-                QStringList date_list = query.value(3).toString().split(".");
-                t.date = QDate(date_list[0].toInt(), date_list[1].toInt(), date_list[2].toInt());
-
-                QStringList time_start_list = query.value(4).toString().split(":");
-                t.start = QTime(time_start_list[0].toInt(), time_start_list[1].toInt(), 0);
-
-                QStringList time_end_list = query.value(5).toString().split(":");
-                t.start = QTime(time_end_list[0].toInt(), time_end_list[1].toInt(), 0);
-
-                t.priority = query.value(6).toInt();
-
-                tasks.append(t);
+            if (!db.open()) {
+                qDebug() << "Ошибка при открытии базы данных с задачами: " << db.lastError().text();
+                return;
             }
-        }
-        query.clear();
-    }
-    QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
 
+            QSqlQuery query(db);
+
+            if (query.exec("SELECT title, subtitle, status, date, start, end, priority FROM Task;")){
+                while (query.next()) {
+                    task t;
+
+                    t.title = query.value(0).toString();
+                    t.subtitle = query.value(1).toString();
+                    t.status = query.value(2).toInt();
+
+                    QStringList date_list = query.value(3).toString().split(".");
+                    t.date = QDate(date_list[0].toInt(), date_list[1].toInt(), date_list[2].toInt());
+
+                    QStringList time_start_list = query.value(4).toString().split(":");
+                    t.start = QTime(time_start_list[0].toInt(), time_start_list[1].toInt(), 0);
+
+                    QStringList time_end_list = query.value(5).toString().split(":");
+                    t.end = QTime(time_end_list[0].toInt(), time_end_list[1].toInt(), 0);
+
+                    t.priority = query.value(6).toInt();
+
+                    tasks.append(t);
+                }
+            }
+
+            query.clear();
+        }
+
+        QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+
+    } else {
+
+        {
+            QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+            db.setDatabaseName("tasks.db");
+
+            if (!db.open()) {
+                qDebug() << "Ошибка при открытии базы данных с задачами: " << db.lastError().text();
+                return;
+            }
+
+            QSqlQuery query(db);
+
+            if (!query.exec("DELETE FROM Task;")){
+                qDebug() << "Ошибка очистки базы данных" << endl;
+            }
+
+            query.clear();
+            tasks.clear();
+        }
+
+        QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+    }
 }
 
 
@@ -65,9 +93,10 @@ void dbworker::readSettings(){
 
         QSqlQuery query(db);
 
-        if (query.exec("SELECT date_program_opened FROM Settings;")) {
+        if (query.exec("SELECT date_program_opened, isdark FROM Settings;")) {
             if (query.next()) {
                 QStringList date_list = query.value(0).toString().split(".");
+                isdark = query.value(1).toBool();
                 if (date_list.size() == 3) {
                     date = QDate(date_list[2].toInt(), date_list[1].toInt(), date_list[0].toInt());
                     if (date != today) {
@@ -82,9 +111,7 @@ void dbworker::readSettings(){
         if (first_todays_opening) {
             db.transaction();
 
-            query.exec("DELETE FROM Settings;");
-
-            query.prepare("INSERT INTO Settings (date_program_opened) VALUES (:date);");
+            query.prepare("UPDATE Settings SET date_program_opened = :date;");
             query.bindValue(":date", today.toString("dd.MM.yyyy"));
 
             if (!query.exec()) {
@@ -101,10 +128,34 @@ void dbworker::readSettings(){
 }
 
 
+void dbworker::setTheme(bool isDark){
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+        db.setDatabaseName("tasks.db");
+
+        if (!db.open()) {
+            qDebug() << "Ошибка при открытии базы данных с задачами:" << db.lastError().text();
+            return;
+        }
+
+        QSqlQuery query(db);
+
+        query.prepare("UPDATE Settings SET isdark = :isdark;");
+        query.bindValue(":isdark", isDark);
+
+        if (!query.exec()){
+            qDebug() << "Ошибка обновления темы в базе данных" << endl;
+        }
+
+        db.close();
+    }
+    QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+}
 
 
+void dbworker::setNewTask(task t){
 
-
+}
 
 
 
