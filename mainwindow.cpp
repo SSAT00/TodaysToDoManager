@@ -57,43 +57,14 @@ void MainWindow::setTasksOnWindow() {
 
         QFrame *taskFrame = new QFrame(contentWidget);
         taskFrame->setFrameShape(QFrame::StyledPanel);
-        taskFrame->setMinimumHeight(90);
-        taskFrame->setMaximumHeight(110);
+        taskFrame->setMinimumHeight(130);
+        taskFrame->setMaximumHeight(130);
 
-        QString statusColor;
-        QString statusText;
-        switch (t.status) {
-            case 0:
-                statusColor = "#8A8A8A";
-                statusText = "Не начато";
-                break;
-            case 1: // Начато
-                statusColor = "#E6A23C";
-                statusText = "В процессе";
-                break;
-            case 2: // Завершено
-                statusColor = "#67C23A";
-                statusText = "Завершено";
-                break;
-            case 3: // Пропущено
-                statusColor = "#F56C6C";
-                statusText = "Пропущено";
-                break;
-            default:
-                statusColor = "#8A8A8A";
-                statusText = "Неизвестно";
-                break;
-        }
+        QString statusColor = statusColors[t.status];
+        QString statusText = statusTexts[t.status];
 
-        QString priorityText;
-        QString priorityColor;
-        switch (t.priority) {
-            case 0: priorityText = "Низкий"; priorityColor = "#909399"; break;
-            case 1: priorityText = "Средний"; priorityColor = "#409EFF"; break;
-            case 2: priorityText = "Высокий"; priorityColor = "#E6A23C"; break;
-            case 3: priorityText = "Критический"; priorityColor = "#F56C6C"; break;
-            default: priorityText = "Обычный"; priorityColor = "#909399"; break;
-        }
+        QString priorityText = priorityTexts[t.priority];
+        QString priorityColor = priorityColors[t.priority];
 
         taskFrame->setStyleSheet(taskFrame_style.arg(statusColor));
 
@@ -113,6 +84,7 @@ void MainWindow::setTasksOnWindow() {
 
         textLayout->addWidget(titleLabel);
         textLayout->addWidget(subtitleLabel);
+
         textLayout->addStretch();
 
         QVBoxLayout *infoLayout = new QVBoxLayout();
@@ -125,21 +97,26 @@ void MainWindow::setTasksOnWindow() {
         QLabel *timeLabel = new QLabel(timeStr, taskFrame);
         timeLabel->setStyleSheet("font-size: 14px; font-weight: 500; border: none; background: transparent;");
         timeLabel->setAlignment(Qt::AlignRight);
+        timeLabel->setFixedSize(QSize(160, 30));
 
         QLabel *priorityLabel = new QLabel(QString("Приоритет: %1").arg(priorityText), taskFrame);
         priorityLabel->setStyleSheet(QString("font-size: 13px; color: %1; border: none; background: transparent;").arg(priorityColor));
         priorityLabel->setAlignment(Qt::AlignRight);
+        priorityLabel->setFixedSize(QSize(160, 30));
 
-        QLabel *statusLabel = new QLabel(statusText, taskFrame);
-        statusLabel->setStyleSheet(QString(
-            "font-size: 13px; font-weight: bold; color: %1; "
-            "border: none; background: transparent;"
-        ).arg(statusColor));
-        statusLabel->setAlignment(Qt::AlignRight);
+        QVector<QString> btnTexts = {"Начать", "Завершить"};
+        QPushButton* btn_action = new QPushButton("");
+        btn_action->setFixedSize(QSize(160, 30));
+        if (t.status >= 2){
+            btn_action->setEnabled(false);
+            btn_action->hide();
+        }else{
+            btn_action->setText(btnTexts[t.status]);
+        }
 
         infoLayout->addWidget(timeLabel);
         infoLayout->addWidget(priorityLabel);
-        infoLayout->addWidget(statusLabel);
+        infoLayout->addWidget(btn_action);
 
         cardLayout->addLayout(textLayout, 1);
         cardLayout->addLayout(infoLayout, 0);
@@ -149,6 +126,11 @@ void MainWindow::setTasksOnWindow() {
 
     vLayout->addStretch();
 
+}
+
+void MainWindow::setNewTask(task t){
+    tasks.append(t);
+    setTasksOnWindow();
 }
 
 void MainWindow::setTheme(){

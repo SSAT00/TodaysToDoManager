@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-#include "modules.h"
+
 #include "mainwindow.h"
 #include "dbworker.h"
 #include "addtaskwindow.h"

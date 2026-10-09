@@ -10,6 +10,7 @@
 #include <QHBoxLayout>
 #include <QScrollBar>
 #include <QPointer>
+#include <QPushButton>
 
 #include <QMouseEvent>
 

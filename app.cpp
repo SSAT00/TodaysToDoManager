@@ -38,4 +38,23 @@ void app::openWindowAddTask(){
     atwindow->activateWindow();
 
     ThemeHelper::applyThemeToTitleBar(atwindow, mainwindow->m_isDarkTheme);
+
+    QObject::connect(atwindow, &AddTaskWindow::new_task, dbw, &dbworker::setNewTask);
+    QObject::connect(atwindow, &AddTaskWindow::new_task, mainwindow, &MainWindow::setNewTask);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

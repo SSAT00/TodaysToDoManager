@@ -23,6 +23,29 @@ void dbworker::readTasks(){
 
             QSqlQuery query(db);
 
+            if (!query.exec("DELETE FROM Task;")){
+                qDebug() << "Ошибка очистки базы данных" << endl;
+            }
+
+            query.clear();
+            tasks.clear();
+        }
+
+        QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+
+    } else {
+
+        {
+            QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+            db.setDatabaseName("tasks.db");
+
+            if (!db.open()) {
+                qDebug() << "Ошибка при открытии базы данных с задачами: " << db.lastError().text();
+                return;
+            }
+
+            QSqlQuery query(db);
+
             if (query.exec("SELECT title, subtitle, status, date, start, end, priority FROM Task;")){
                 while (query.next()) {
                     task t;
@@ -51,28 +74,6 @@ void dbworker::readTasks(){
 
         QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
 
-    } else {
-
-        {
-            QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-            db.setDatabaseName("tasks.db");
-
-            if (!db.open()) {
-                qDebug() << "Ошибка при открытии базы данных с задачами: " << db.lastError().text();
-                return;
-            }
-
-            QSqlQuery query(db);
-
-            if (!query.exec("DELETE FROM Task;")){
-                qDebug() << "Ошибка очистки базы данных" << endl;
-            }
-
-            query.clear();
-            tasks.clear();
-        }
-
-        QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
     }
 }
 
@@ -154,7 +155,40 @@ void dbworker::setTheme(bool isDark){
 
 
 void dbworker::setNewTask(task t){
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+        db.setDatabaseName("tasks.db");
 
+        if (!db.open()) {
+            qDebug() << "Ошибка при открытии базы данных с задачами:" << db.lastError().text();
+            return;
+        }
+
+        db.transaction();
+
+        QSqlQuery query(db);
+
+        query.prepare("INSERT INTO Task (title, subtitle, status, date, start, end, priority) VALUES (:title, :subtitle, :status, :date, :start, :end, :priority);");
+        query.bindValue(":title", t.title);
+        query.bindValue(":subtitle", t.subtitle);
+        query.bindValue(":status", t.status);
+        query.bindValue(":date", t.date.toString("dd.MM.yyyy"));
+        query.bindValue(":start", t.start.toString("hh:mm"));
+        query.bindValue(":end", t.end.toString("hh:mm"));
+        query.bindValue(":priority", t.priority);
+
+
+        if (!query.exec()){
+            qDebug() << "Ошибка добавления новой задачи" << endl;
+        }
+
+        qDebug() << 1 << endl;
+
+        db.commit();
+
+        db.close();
+    }
+    QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
 }
 
 

@@ -14,6 +14,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 private:
     QVector<task> tasks;
+    QVector<QPushButton*> btns_task_action;
 
     void setTasksOnWindow();
 
@@ -22,6 +23,7 @@ public:
     ~MainWindow();
 
     void setTasks(QVector<task>);
+    void setNewTask(task);
     void setTheme();
     void setBGImage();
     void setTheme(bool isdark_){m_isDarkTheme = isdark_;}
