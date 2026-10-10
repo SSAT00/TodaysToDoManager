@@ -33,6 +33,7 @@ public:
 private:
     Ui::MainWindow *ui;
 
+    void btn_change_status_clicked(QString);
 
 private slots:
     void on_btn_theme_clicked();
@@ -41,6 +42,7 @@ private slots:
 signals:
     void change_theme(bool);
     void open_window_add_task();
+    void status_changed(QString);
 };
 
 #endif // MAINWINDOW_H

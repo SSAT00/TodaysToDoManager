@@ -9,6 +9,7 @@ app::app(QObject *parent)
 
     QObject::connect(mainwindow, &MainWindow::change_theme, dbw, &dbworker::setTheme);
     QObject::connect(mainwindow, &MainWindow::open_window_add_task, this, &app::openWindowAddTask);
+    QObject::connect(mainwindow, &MainWindow::status_changed, dbw, &dbworker::setNewStatus);
 }
 
 int app::run_app(){
@@ -37,7 +38,15 @@ void app::openWindowAddTask(){
     atwindow->raise();
     atwindow->activateWindow();
 
+    QVector<task> tasks_ = dbw->getTasks();
+    QVector<QString> tt;
+    for(int i = 0; i < tasks_.size(); i++){
+        tt.append(tasks_[i].title);
+    }
+    atwindow->setTasks(tt);
+
     ThemeHelper::applyThemeToTitleBar(atwindow, mainwindow->m_isDarkTheme);
+    atwindow->setTheme(mainwindow->m_isDarkTheme);
 
     QObject::connect(atwindow, &AddTaskWindow::new_task, dbw, &dbworker::setNewTask);
     QObject::connect(atwindow, &AddTaskWindow::new_task, mainwindow, &MainWindow::setNewTask);

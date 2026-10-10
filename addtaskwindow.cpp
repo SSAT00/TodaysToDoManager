@@ -18,23 +18,26 @@ AddTaskWindow::~AddTaskWindow()
 }
 
 void AddTaskWindow::on_btn_create_clicked(){
-    task t;
+    if (data_is_valid()){
 
-    t.title = ui->le_title->text();
-    t.subtitle = ui->le_subtitle->toPlainText();
-    t.status = 0;
+        task t;
 
-    t.date = QDate::currentDate();
+        t.title = ui->le_title->text();
+        t.subtitle = ui->le_subtitle->toPlainText();
+        t.status = 0;
 
-    t.start = ui->te_start->time();
+        t.date = QDate::currentDate();
 
-    t.end = ui->te_end->time();
+        t.start = ui->te_start->time();
 
-    t.priority = priority;
+        t.end = ui->te_end->time();
 
-    emit new_task(t);
+        t.priority = priority;
 
-    this->close();
+        emit new_task(t);
+
+        this->close();
+    }
 }
 
 void AddTaskWindow::on_btn_low_clicked(){
@@ -77,8 +80,71 @@ void AddTaskWindow::on_btn_critical_clicked(){
     } else ui->btn_critical->setStyleSheet(btnCriticalStyleFocus);
 }
 
+bool AddTaskWindow::data_is_valid(){
+    QString title = ui->le_title->text();
+    if (title == ""){
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Уведомление");
+        msgBox.setText("Заполните название задачи!");
+        msgBox.button(QMessageBox::Ok);
 
+        #ifdef Q_OS_WIN
+        ThemeHelper::applyThemeToTitleBar(&msgBox, isDark);
+        #endif
 
+        msgBox.exec();
+
+        return false;
+    }
+
+    for(int i = 0 ; i < task_titles.size(); i ++){
+        if (title == task_titles[i]){
+            QMessageBox::information(
+                this,
+                "Уведомление",
+                "Задача с таким названием уже существует!",
+                QMessageBox::Ok
+            );
+            return false;
+        }
+    }
+
+    QString sub_title = ui->le_subtitle->toPlainText();
+    if (sub_title == ""){
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Уведомление");
+        msgBox.setText("Заполните описание задачи!");
+        msgBox.button(QMessageBox::Ok);
+
+        #ifdef Q_OS_WIN
+        ThemeHelper::applyThemeToTitleBar(&msgBox, isDark);
+        #endif
+
+        msgBox.exec();
+
+        return false;
+    }
+
+    QTime start = ui->te_start->time();
+    QTime end = ui->te_end->time();
+    QTime now = QTime::currentTime();
+    if (start < now || end < now || end < start){
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("Уведомление");
+        msgBox.setText("Выбрано не корректное время!");
+        msgBox.button(QMessageBox::Ok);
+
+        #ifdef Q_OS_WIN
+        ThemeHelper::applyThemeToTitleBar(&msgBox, isDark);
+        #endif
+
+        msgBox.exec();
+
+        return false;
+    }
+
+    return true;
+}
 
 
 

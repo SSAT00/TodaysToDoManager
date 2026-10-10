@@ -35,6 +35,9 @@ void dbworker::readTasks(){
 
     } else {
 
+        QVector<int> indexes_missed_tasks;
+        int i = 0;
+
         {
             QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
             db.setDatabaseName("tasks.db");
@@ -46,9 +49,13 @@ void dbworker::readTasks(){
 
             QSqlQuery query(db);
 
+            QTime now_time = QTime::currentTime();
+
             if (query.exec("SELECT title, subtitle, status, date, start, end, priority FROM Task;")){
                 while (query.next()) {
                     task t;
+
+                    t.short_title = "task_" + QString::number(i);
 
                     t.title = query.value(0).toString();
                     t.subtitle = query.value(1).toString();
@@ -63,7 +70,14 @@ void dbworker::readTasks(){
                     QStringList time_end_list = query.value(5).toString().split(":");
                     t.end = QTime(time_end_list[0].toInt(), time_end_list[1].toInt(), 0);
 
+                    if (t.end < now_time && t.status != 2){
+                        t.status = 3;
+                        indexes_missed_tasks.append(i);
+                    }
+
                     t.priority = query.value(6).toInt();
+
+                    i++;
 
                     tasks.append(t);
                 }
@@ -73,6 +87,37 @@ void dbworker::readTasks(){
         }
 
         QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+
+        if (indexes_missed_tasks.size() > 0){
+
+            {
+                QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+                db.setDatabaseName("tasks.db");
+
+                if (!db.open()) {
+                    qDebug() << "Ошибка при открытии базы данных с задачами: " << db.lastError().text();
+                    return;
+                }
+
+                QSqlQuery query(db);
+
+                for(int i = 0; i < indexes_missed_tasks.size(); i++){
+
+                    QString title = tasks[indexes_missed_tasks[i]].title;
+
+                    query.prepare("UPDATE Task SET status = 3 WHERE title = :title;");
+                    query.bindValue(":title", title);
+
+                    if (!query.exec()){
+                        qDebug() << "Ошибка перезаписи статуса пропущенной задачи!" << endl;
+                    }
+                }
+
+                query.clear();
+            }
+
+            QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+        }
 
     }
 }
@@ -179,17 +224,74 @@ void dbworker::setNewTask(task t){
 
 
         if (!query.exec()){
-            qDebug() << "Ошибка добавления новой задачи" << endl;
+            qDebug() << "Ошибка добавления новой задачи." << endl;
         }
-
-        qDebug() << 1 << endl;
 
         db.commit();
 
         db.close();
     }
     QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+    tasks.append(t);
 }
+
+void dbworker::setNewStatus(QString short_title){
+    for(int i = 0 ; i < tasks.size(); i++){
+        if (tasks[i].short_title == short_title){
+            {
+                QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+                db.setDatabaseName("tasks.db");
+
+                if (!db.open()) {
+                    qDebug() << "Ошибка при открытии базы данных с задачами:" << db.lastError().text();
+                    return;
+                }
+
+                db.transaction();
+
+                QSqlQuery query(db);
+
+                tasks[i].status += 1;
+
+                query.prepare("UPDATE Task SET status = :status WHERE title = :title;");
+                query.bindValue(":status", tasks[i].status);
+                query.bindValue(":title", tasks[i].title);
+
+                if (!query.exec()){
+                    qDebug() << "Ошибка обновления статуса." << endl;
+                }
+
+                db.commit();
+
+                db.close();
+            }
+
+            QSqlDatabase::removeDatabase(QSqlDatabase::defaultConnection);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

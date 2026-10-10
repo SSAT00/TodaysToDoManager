@@ -13,11 +13,12 @@
 #include <QPushButton>
 
 #include <QMouseEvent>
+#include <QMessageBox>
 
 #include "themehelper.h"
 
 struct task{
-    QString title, subtitle;
+    QString title, subtitle, short_title;
     int status;
     QDate date;
     QTime start, end;

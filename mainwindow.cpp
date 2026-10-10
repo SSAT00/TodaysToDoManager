@@ -113,6 +113,9 @@ void MainWindow::setTasksOnWindow() {
         }else{
             btn_action->setText(btnTexts[t.status]);
         }
+        connect(btn_action, &QPushButton::clicked, this, [=]() {
+            btn_change_status_clicked(tasks[i].short_title);
+        });
 
         infoLayout->addWidget(timeLabel);
         infoLayout->addWidget(priorityLabel);
@@ -167,7 +170,15 @@ void MainWindow::setBGImage(){
     }
 }
 
-
+void MainWindow::btn_change_status_clicked(QString short_title){
+    for(int i = 0; i < tasks.size(); i ++){
+        if (short_title == tasks[i].short_title){
+            tasks[i].status += 1;
+            emit status_changed(short_title);
+            setTasksOnWindow();
+        }
+    }
+}
 
 
 

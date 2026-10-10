@@ -28,6 +28,7 @@ public:
 
     void setTheme(bool isDark);
     void setNewTask(task);
+    void setNewStatus(QString);
 };
 
 #endif // DBWORKER_H
