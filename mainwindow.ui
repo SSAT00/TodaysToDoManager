@@ -33,7 +33,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normaloff>img/logo-light.png</normaloff>img/logo-light.png</iconset>
+    <normaloff>img/logo.png</normaloff>img/logo.png</iconset>
   </property>
   <property name="styleSheet">
    <string notr="true">QMainWindow#MainWindow{border-radius:20px;}</string>
@@ -137,8 +137,8 @@
           <font>
            <family>Segoe UI</family>
            <pointsize>9</pointsize>
-           <weight>50</weight>
-           <bold>false</bold>
+           <weight>75</weight>
+           <bold>true</bold>
           </font>
          </property>
          <property name="text">
@@ -241,7 +241,7 @@
         <number>0</number>
        </property>
        <item row="0" column="0">
-        <widget class="QScrollArea" name="scrollArea">
+        <widget class="QScrollArea" name="scrollAreaTasks">
          <property name="styleSheet">
           <string notr="true">QScrollArea#scrollArea{border:none;}</string>
          </property>

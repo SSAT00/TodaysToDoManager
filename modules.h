@@ -8,12 +8,14 @@
 #include <QFrame>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QScrollArea>
 #include <QScrollBar>
 #include <QPointer>
 #include <QPushButton>
 
 #include <QMouseEvent>
 #include <QMessageBox>
+#include <QTimer>
 
 #include "themehelper.h"
 

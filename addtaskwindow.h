@@ -27,8 +27,15 @@ private:
     int priority = 1;
     QVector<QString> task_titles;
     bool isDark;
+    bool title_error, subtitle_error, start_error, end_error;
 
     bool data_is_valid();
+    void set_times();
+
+    void title_changed();
+    void subtitle_changed();
+    void start_time_changed();
+    void end_time_changed();
 
 private slots:
     void on_btn_create_clicked();

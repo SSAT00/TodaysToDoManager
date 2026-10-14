@@ -9,6 +9,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     setBGImage();
+
+    QDateTime dateTime = QDateTime::currentDateTime();
+    QLocale russianLocale(QLocale::Russian);
+    QString formattedString = russianLocale.toString(dateTime, "d MMMM (ddd) yyyy");
+    ui->l_today->setText(formattedString);
 }
 
 MainWindow::~MainWindow()
@@ -19,10 +24,11 @@ MainWindow::~MainWindow()
 void MainWindow::setTasks(QVector<task> tasks_){
     tasks = tasks_;
     setTasksOnWindow();
+    QDateTime today_now = QDateTime::currentDateTime();
 }
 
 void MainWindow::setTasksOnWindow() {
-    QWidget *contentWidget = ui->scrollArea->widget();
+    QWidget *contentWidget = ui->scrollAreaTasks->widget();
     if (!contentWidget) return;
 
     if (contentWidget->layout()) {
@@ -37,7 +43,7 @@ void MainWindow::setTasksOnWindow() {
         delete oldLayout;
     }
 
-    ui->scrollArea->setFrameShape(QFrame::NoFrame);
+    ui->scrollAreaTasks->setFrameShape(QFrame::NoFrame);
 
     if (tasks.isEmpty()) return;
 
@@ -49,8 +55,8 @@ void MainWindow::setTasksOnWindow() {
     QString hoverColor  = m_isDarkTheme ? "rgba(255, 255, 255, 0.60)" : "#595959";
     QString pressColor  = m_isDarkTheme ? "rgba(255, 255, 255, 0.85)" : "#262626";
 
-    ui->scrollArea->setStyleSheet(scrollBarStyle.arg(handleColor, hoverColor, pressColor));
-    ui->scrollArea->verticalScrollBar()->setStyleSheet(scrollBarStyle.arg(handleColor, hoverColor, pressColor));
+    ui->scrollAreaTasks->setStyleSheet(scrollBarStyle.arg(handleColor, hoverColor, pressColor));
+    ui->scrollAreaTasks->verticalScrollBar()->setStyleSheet(scrollBarStyle.arg(handleColor, hoverColor, pressColor));
 
     for (int i = 0; i < tasks.size(); ++i) {
         const task &t = tasks[i];
@@ -59,6 +65,7 @@ void MainWindow::setTasksOnWindow() {
         taskFrame->setFrameShape(QFrame::StyledPanel);
         taskFrame->setMinimumHeight(130);
         taskFrame->setMaximumHeight(130);
+        taskFrame->setObjectName(t.short_title);
 
         QString statusColor = statusColors[t.status];
         QString statusText = statusTexts[t.status];
@@ -66,7 +73,7 @@ void MainWindow::setTasksOnWindow() {
         QString priorityText = priorityTexts[t.priority];
         QString priorityColor = priorityColors[t.priority];
 
-        taskFrame->setStyleSheet(taskFrame_style.arg(statusColor));
+        taskFrame->setStyleSheet(taskFrame_style.arg(t.short_title, statusColor));
 
         QHBoxLayout *cardLayout = new QHBoxLayout(taskFrame);
         cardLayout->setContentsMargins(16, 12, 16, 12);
@@ -78,12 +85,18 @@ void MainWindow::setTasksOnWindow() {
         QLabel *titleLabel = new QLabel(t.title, taskFrame);
         titleLabel->setStyleSheet("font-size: 18px; font-weight: bold; border: none; background: transparent;");
 
+        QScrollArea *scrollArea = new QScrollArea();
+        scrollArea->setWidgetResizable(true);
+
         QLabel *subtitleLabel = new QLabel(t.subtitle, taskFrame);
         subtitleLabel->setStyleSheet("font-size: 14px; color: #888888; border: none; background: transparent;");
         subtitleLabel->setWordWrap(true);
+        subtitleLabel->setAlignment(Qt::AlignTop);
+
+        scrollArea->setWidget(subtitleLabel);
 
         textLayout->addWidget(titleLabel);
-        textLayout->addWidget(subtitleLabel);
+        textLayout->addWidget(scrollArea);
 
         textLayout->addStretch();
 
@@ -132,8 +145,19 @@ void MainWindow::setTasksOnWindow() {
 }
 
 void MainWindow::setNewTask(task t){
+
+    t.short_title = "task_" + QString::number(tasks.size());
     tasks.append(t);
     setTasksOnWindow();
+
+    QScrollBar* vScrollBar = ui->scrollAreaTasks->verticalScrollBar();
+
+    QCoreApplication::processEvents();
+
+    QTimer::singleShot(0, this, [vScrollBar]() {
+        vScrollBar->setValue(vScrollBar->maximum());
+    });
+
 }
 
 void MainWindow::setTheme(){
@@ -155,11 +179,11 @@ void MainWindow::on_btn_theme_clicked()
 }
 
 void MainWindow::setBGImage(){
-    QWidget *contentWidget_img = ui->scrollArea->widget();
+    QWidget *contentWidget_img = ui->scrollAreaTasks->widget();
     if (contentWidget_img) {
 
-        ui->scrollArea->setStyleSheet("QScrollArea { border: none; background: transparent; }");
-        ui->scrollArea->viewport()->setStyleSheet("background: transparent;");
+        ui->scrollAreaTasks->setStyleSheet("QScrollArea { border: none; background: transparent; }");
+        ui->scrollAreaTasks->viewport()->setStyleSheet("background: transparent;");
 
         contentWidget_img->setStyleSheet(
             "QWidget#scrollAreaWidgetContents {"
@@ -171,6 +195,10 @@ void MainWindow::setBGImage(){
 }
 
 void MainWindow::btn_change_status_clicked(QString short_title){
+
+    QScrollBar* vScrollBar = ui->scrollAreaTasks->verticalScrollBar();
+    int current_scroll_value = vScrollBar->value();
+
     for(int i = 0; i < tasks.size(); i ++){
         if (short_title == tasks[i].short_title){
             tasks[i].status += 1;
@@ -178,6 +206,12 @@ void MainWindow::btn_change_status_clicked(QString short_title){
             setTasksOnWindow();
         }
     }
+
+    QCoreApplication::processEvents();
+
+    QTimer::singleShot(0, this, [vScrollBar, current_scroll_value]() {
+        vScrollBar->setValue(current_scroll_value);
+    });
 }
 
 
